@@ -2,7 +2,7 @@
 #ifndef EEPROM_DATABASE
 #define EEPROM_DATABASE
 
-// #include <EEPROM.h>
+#include <EEPROM.h>
 
 
 class EEPROMDatabase
@@ -16,7 +16,7 @@ private:
 
     int _eepos_(uint8_t idx);
 
-    #ifdef ESP_H
+    #if defined( ESP_H ) || defined( _HELTEC_H_ )
         void _esp32update(int epos, uint8_t data){
             if (EEPROM.read(epos) != data)
             {
@@ -24,6 +24,9 @@ private:
                 EEPROM.commit();
             }
         }
+    #define EEPROM_update _esp32update
+    #else
+    #define EEPROM_update EEPROM.update
     #endif
 
     bool marker;
@@ -102,11 +105,7 @@ void EEPROMDatabase::del(uint8_t idx)
     int epos = _eepos_(idx);
     if (epos != -1)
     {
-        #ifndef ESP_H
-            EEPROM.update(epos, 0); // Actualizo el indicador
-        #else
-            _esp32update(epos, 0);
-        #endif
+        EEPROM_update(epos, 0); // Actualizo el indicador
     }
 }
 
@@ -141,29 +140,17 @@ void EEPROMDatabase::set(uint8_t reg[], uint8_t idx)
     {
         if(marker)
         {
-            #ifndef ESP_H
-                EEPROM.update(epos, HIGH);
-            #else
-                _esp32update(epos, HIGH);
-            #endif
+            EEPROM_update(epos, HIGH);
             for (uint8_t i = 0; i < reg_size; i++)
             {
-                #ifndef ESP_H
-                    EEPROM.update(epos+1+i, reg[i]);
-                #else
-                    _esp32update(epos+1+i, reg[i]);
-                #endif
+                EEPROM_update(epos+1+i, reg[i]);
             }   
         }
         else
         {
             for (uint8_t i = 0; i < reg_size; i++)
             {
-                #ifndef ESP_H
-                    EEPROM.update(epos+i, reg[i]);
-                #else
-                    _esp32update(epos+i, reg[i]);
-                #endif
+                EEPROM_update(epos+i, reg[i]);
             }  
         }
     }
